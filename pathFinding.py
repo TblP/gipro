@@ -31,30 +31,35 @@ def start(file,startpos,endpos):
         FTest = dj.dijkstra(allNEdes,start=startpos,end=endpos)
         fLen = FTest[0].get(endpos)
 
-        for i in range(0,len(firstPath)-1):
-            #print(firstPath[i])
-            #print(allNudes[firstPath[i]])
-            #print(allNudes[firstPath[i]].get(firstPath[i+1]))
+        for i in range(len(firstPath)-1):
 
             allNudes[firstPath[i]].update([(firstPath[i+1] , allNudes[firstPath[i]].get(firstPath[i+1]) + 9000)])
+            allNudes[firstPath[i+1]].update([(firstPath[i], allNudes[firstPath[i+1]].get(firstPath[i]) + 9000)])
 
-            #print(allNudes[firstPath[i]])
-
-        #print(dj.shortest_path(allNEdes,start='N09404',end='N09373'))
         STest = dj.dijkstra(allNEdes,start=startpos,end=endpos)
         sLen = STest[0].get(endpos)
         secondPath = dj.shortest_path(allNEdes,start=startpos,end=endpos)
 
         sameNudes = []
         trueLen = STest[0].get(endpos)
-        for i in range(1, len(firstPath) - 1):
-            for b in range(1, len(secondPath) - 1):
+        for i in range(0, len(firstPath)):
+            for b in range(0, len(secondPath)):
                 if (firstPath[i] == secondPath[b]):
                     sameNudes.append(firstPath[i])
-                    trueLen -= 9000
                     break
                 else:
                     continue
+
+        trueLen -= len(sameNudes) * 9000
+        while trueLen < 0:
+            trueLen += 9000
+        if(len(secondPath) == 2 and trueLen > 9000):
+            trueLen -= 9000
+        if startpos in sameNudes:
+            sameNudes.remove(startpos)
+        if endpos in sameNudes:
+            sameNudes.remove(endpos)
+
         if (len(sameNudes) == 0):
             trueLen = 0
 
@@ -78,22 +83,21 @@ def check(file,startpos,endpos):
 def startInArea(file,startpos,endpos):
     try:
         Connect = pd.read_excel(file, sheet_name='edges')
-        data_df = pd.read_excel(file, sheet_name='nodes')
+
     except:
         raise ValueError("bad file")
-
-    df = data_df.copy()
-    list = df['№ узла'].tolist()
-
-    allNudes = dict(zip(list, [dict() for i in range(len(list))]))
 
     df = Connect.copy()
 
     df = df[["№ т.А", "Регион т.А", "№ т.Б", "Регион т.Б", "Длина, км"]]
 
     for i in range(df.shape[0]):
-        if (df.iloc[i, 0] == "N09373"):
+        if (df.iloc[i, 0] == startpos):
             a = df.iloc[i, 1]
+            break
+        if (df.iloc[i, 2] == startpos):
+            a = df.iloc[i, 3]
+            break
 
     df_filter = df["Регион т.А"].isin([a])
     areaNudes = df[df_filter]
@@ -118,14 +122,10 @@ def startInArea(file,startpos,endpos):
     FTest = dj.dijkstra(allNEdes, start=startpos, end=endpos)
     fLen = FTest[0].get(endpos)
 
-    for i in range(0, len(firstPath) - 1):
-        # print(firstPath[i])
-        # print(allNudes[firstPath[i]])
-        # print(allNudes[firstPath[i]].get(firstPath[i
+    for i in range(len(firstPath) - 1):
 
         allNudez[firstPath[i]].update([(firstPath[i + 1], allNudez[firstPath[i]].get(firstPath[i + 1]) + 9000)])
-
-        # print(allNudes[firstPath[i]])
+        allNudez[firstPath[i + 1]].update([(firstPath[i], allNudez[firstPath[i + 1]].get(firstPath[i]) + 9000)])
 
     # print(dj.shortest_path(allNEdes,start='N09404',end='N09373'))
     STest = dj.dijkstra(allNEdes, start=startpos, end=endpos)
@@ -134,16 +134,33 @@ def startInArea(file,startpos,endpos):
 
     sameNudes = []
     trueLen = STest[0].get(endpos)
-    for i in range(1, len(firstPath) - 1):
-        for b in range(1, len(secondPath) - 1):
+    for i in range(0, len(firstPath)):
+        for b in range(0, len(secondPath)):
             if (firstPath[i] == secondPath[b]):
                 sameNudes.append(firstPath[i])
-                trueLen -= 9000
                 break
             else:
                 continue
+
+    trueLen -= len(sameNudes) * 9000
+    while trueLen < 0:
+        trueLen += 9000
+
+    if (secondPath == firstPath):
+        trueLen = fLen
+        sLen = fLen
+
+    if startpos in sameNudes:
+        sameNudes.remove(startpos)
+    if endpos in sameNudes:
+        sameNudes.remove(endpos)
+
     if (len(sameNudes) == 0):
         trueLen = 0
+
+
+
+
 
     return firstPath, fLen, secondPath, sLen, sameNudes, trueLen
 
