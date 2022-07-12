@@ -3,6 +3,40 @@ import numpy as np
 import dijkstra as dj
 import pandas as pd
 
+def overPrice(firstPath,allNudes):
+    for i in range(len(firstPath) - 1):
+        allNudes[firstPath[i]].update([(firstPath[i + 1], allNudes[firstPath[i]].get(firstPath[i + 1]) + 9000)])
+        allNudes[firstPath[i + 1]].update([(firstPath[i], allNudes[firstPath[i + 1]].get(firstPath[i]) + 9000)])
+
+def overPriceIndNode(firstPath,allNudes):
+    for i in range(len(firstPath)):
+        n = list(allNudes[firstPath[i]].keys())
+        m = list(allNudes[firstPath[i]].values())
+        for b in range(len(allNudes[firstPath[i]])):
+            allNudes[firstPath[i]].update([(n[b], allNudes[firstPath[i]].get(n[b]) + 9000)])
+def clearFirstPath(firstPath,allNudes):
+    for i in range(len(firstPath) - 1):
+        allNudes[firstPath[i]].update([(firstPath[i + 1], allNudes[firstPath[i]].get(firstPath[i + 1]) - 9000)])
+
+def checkForSameNode(samen,allnudes,startpos,endpos,secondpath,firstpath):
+    clearFirstPath(firstpath,allnudes)
+    overPriceIndNode(samen,allnudes)
+    alternative = dj.shortest_path(allnudes, start=startpos, end=endpos)
+    alternative2 = dj.dijkstra(allnudes, start=startpos, end=endpos)
+    altLen = alternative2[0].get(endpos)
+    alternativeSameNode = []
+    return checkSameNode(alternative,secondpath,alternativeSameNode), alternative,altLen
+
+def checkSameNode(firstPath,secondPath,sameNudes):
+    for i in range(0, len(firstPath)):
+        for b in range(0, len(secondPath)):
+            if (firstPath[i] == secondPath[b]):
+                sameNudes.append(firstPath[i])
+                break
+            else:
+                continue
+    return sameNudes
+
 def start(file,startpos,endpos):
 
         try:
@@ -31,10 +65,12 @@ def start(file,startpos,endpos):
         FTest = dj.dijkstra(allNEdes,start=startpos,end=endpos)
         fLen = FTest[0].get(endpos)
 
-        for i in range(len(firstPath)-1):
+        overPrice(firstPath,allNudes)
+
+        """for i in range(len(firstPath)-1):
 
             allNudes[firstPath[i]].update([(firstPath[i+1] , allNudes[firstPath[i]].get(firstPath[i+1]) + 9000)])
-            allNudes[firstPath[i+1]].update([(firstPath[i], allNudes[firstPath[i+1]].get(firstPath[i]) + 9000)])
+            allNudes[firstPath[i+1]].update([(firstPath[i], allNudes[firstPath[i+1]].get(firstPath[i]) + 9000)])"""
 
         STest = dj.dijkstra(allNEdes,start=startpos,end=endpos)
         sLen = STest[0].get(endpos)
@@ -42,19 +78,41 @@ def start(file,startpos,endpos):
 
         sameNudes = []
         trueLen = STest[0].get(endpos)
-        for i in range(0, len(firstPath)):
-            for b in range(0, len(secondPath)):
-                if (firstPath[i] == secondPath[b]):
-                    sameNudes.append(firstPath[i])
-                    break
-                else:
-                    continue
+
+
+
+        sameNudes = checkSameNode(firstPath,secondPath,sameNudes)
+
+        sLen -= len(sameNudes) * 9000
+        while sLen < 0:
+            sLen += 9000
+        before = 0
+        if (len(sameNudes) > 0):
+            if startpos in sameNudes:
+                sameNudes.remove(startpos)
+                before +=1
+            if endpos in sameNudes:
+                sameNudes.remove(endpos)
+                before += 2
+            sameNodes,alt,altLen = checkForSameNode(sameNudes,allNudes,startpos,endpos,secondPath,firstPath)
+            if(len(np.intersect1d(sameNudes, sameNodes)) == 0):
+                sameNudes = sameNodes
+                firstPath = alt
+                fLen = altLen
+            if startpos not in sameNudes:
+                if before == 1 or before == 3:
+                    sameNudes.append(startpos)
+            if endpos not in sameNudes:
+                if before == 2 or before == 3:
+                    sameNudes.append(endpos)
+
 
         trueLen -= len(sameNudes) * 9000
         while trueLen < 0:
             trueLen += 9000
         if(len(secondPath) == 2 and trueLen > 9000):
             trueLen -= 9000
+
         if startpos in sameNudes:
             sameNudes.remove(startpos)
         if endpos in sameNudes:
@@ -122,11 +180,11 @@ def startInArea(file,startpos,endpos):
     FTest = dj.dijkstra(allNEdes, start=startpos, end=endpos)
     fLen = FTest[0].get(endpos)
 
-    for i in range(len(firstPath) - 1):
+    """for i in range(len(firstPath) - 1):
 
         allNudez[firstPath[i]].update([(firstPath[i + 1], allNudez[firstPath[i]].get(firstPath[i + 1]) + 9000)])
-        allNudez[firstPath[i + 1]].update([(firstPath[i], allNudez[firstPath[i + 1]].get(firstPath[i]) + 9000)])
-
+        allNudez[firstPath[i + 1]].update([(firstPath[i], allNudez[firstPath[i + 1]].get(firstPath[i]) + 9000)])"""
+    overPrice(firstPath, allNEdes)
     # print(dj.shortest_path(allNEdes,start='N09404',end='N09373'))
     STest = dj.dijkstra(allNEdes, start=startpos, end=endpos)
     sLen = STest[0].get(endpos)
@@ -134,13 +192,30 @@ def startInArea(file,startpos,endpos):
 
     sameNudes = []
     trueLen = STest[0].get(endpos)
-    for i in range(0, len(firstPath)):
-        for b in range(0, len(secondPath)):
-            if (firstPath[i] == secondPath[b]):
-                sameNudes.append(firstPath[i])
-                break
-            else:
-                continue
+    sameNudes = checkSameNode(firstPath, secondPath, sameNudes)
+
+    sLen -= len(sameNudes) * 9000
+    while sLen < 0:
+        sLen += 9000
+    before = 0
+    if startpos in sameNudes:
+        sameNudes.remove(startpos)
+        before += 1
+    if endpos in sameNudes:
+        sameNudes.remove(endpos)
+        before += 2
+    if (len(sameNudes) > 0):
+        sameNodes, alt, altLen = checkForSameNode(sameNudes, allNudez, startpos, endpos, secondPath, firstPath)
+        if (len(np.intersect1d(sameNudes, sameNodes)) == 0):
+            sameNudes = sameNodes
+            firstPath = alt
+            fLen = altLen
+        if startpos not in sameNudes:
+            if before == 1 or before == 3:
+                sameNudes.append(startpos)
+        if endpos not in sameNudes:
+            if before == 2 or before == 3:
+                sameNudes.append(endpos)
 
     trueLen -= len(sameNudes) * 9000
     while trueLen < 0:

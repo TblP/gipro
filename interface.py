@@ -137,8 +137,6 @@ class ExampleApp(QtWidgets.QMainWindow, desgn.Ui_MainWindow):
                         self.errorLabel.setText(str(e))
                         return
 
-
-
             else:
                 self.errorLabel.setText("Проверьте правильность ввода узлов.(Возможно пробел на конце)")
                 return
