@@ -2,7 +2,7 @@ import os
 import re
 import sys
 from time import sleep
-
+import dwdmDir as dw
 from PyQt5 import QtCore, QtWidgets
 import desgn
 from pathlib import Path
@@ -20,6 +20,8 @@ class ExampleApp(QtWidgets.QMainWindow, desgn.Ui_MainWindow):
         self.startButton.clicked.connect(self.thread)
         self.saveButton.clicked.connect(self.saveListen)
         self.addButton.clicked.connect(self.openNodes)
+        self.dwdmBtn.clicked.connect(self.openDWDM)
+        self.checkBox.clicked.connect(self.check)
 
         self.excel_data_df = pd.DataFrame()
         self.save_df = pd.DataFrame()
@@ -29,8 +31,15 @@ class ExampleApp(QtWidgets.QMainWindow, desgn.Ui_MainWindow):
         self.saveButton.setEnabled(False)
         self.addButton.setEnabled(False)
         self.outareabtn.setChecked(True)
+        self.dwdmBtn.setEnabled(False)
 
         self.pos = 0
+
+    def check(self):
+        if (self.checkBox.isChecked()):
+            self.dwdmBtn.setEnabled(True)
+        else:
+            self.dwdmBtn.setEnabled(False)
 
     def thread(self):
         t1 = Thread(target=self.startListen)
@@ -64,13 +73,18 @@ class ExampleApp(QtWidgets.QMainWindow, desgn.Ui_MainWindow):
         self.saveButton.setEnabled(False)
         self.inareaBtn.setEnabled(False)
         self.outareabtn.setEnabled(False)
+        self.dwdmBtn.setEnabled(False)
+        self.checkBox.setEnabled(False)
 
         a = []
 
         for i in range(self.excel_data_df.shape[0]):
             a.append(i)
 
-        self.save_df = pd.DataFrame(index=a, columns=['Путь1', 'Длина1', 'Путь2', 'Длина2', 'Одинаковые узлы'])
+        if (self.checkBox.isChecked()):
+            self.save_df = pd.DataFrame(index=a, columns=['Путь1', 'Длина1', 'Путь2', 'Длина2', 'Одинаковые узлы','dwdm1','dwdm2'])
+        else:
+            self.save_df = pd.DataFrame(index=a, columns=['Путь1', 'Длина1', 'Путь2', 'Длина2', 'Одинаковые узлы'])
 
         for i in range(self.excel_data_df.shape[0]):
 
@@ -94,7 +108,33 @@ class ExampleApp(QtWidgets.QMainWindow, desgn.Ui_MainWindow):
                 return
 
             if(a and b):
-                if(self.outareabtn.isChecked()):
+                if (self.checkBox.isChecked()):
+                    firstPathD,SecndPathD,sameNudesdwdm = dw.dwdm(self.data,sdh,mn)
+
+                    fullpath1,flen = dw.repath(self.readfile,firstPathD)
+                    fullpath2,slen = dw.repath(self.readfile, SecndPathD)
+                    fullpath1,fullpath2,flen,slen = dw.bestchoice(fullpath1,fullpath2,flen,slen)
+
+                    nodes = []
+                    pf.checkSameNode(fullpath1,fullpath2,nodes)
+
+                    if sdh in nodes:
+                        nodes.remove(sdh)
+                    if mn in nodes:
+                        nodes.remove(mn)
+
+                    allData = [fullpath1,flen,fullpath2,slen,nodes,firstPathD,SecndPathD]
+
+                    check = 0
+
+                    for i in range(self.save_df.shape[0]):
+                        if (str(self.save_df.iat[i, 0]).lower() == 'nan'):
+                            for b in range(self.save_df.shape[1]):
+                                self.save_df.iat[i, b] = allData[b]
+                                check += 1
+                        if (check == 8):
+                            break
+                if(self.outareabtn.isChecked() and self.checkBox.isChecked() == False):
                     try:
                         self.firstPath, self.fLen, self.secondPath, self.sLen, self.sameNudes, self.trueLen = \
                             pf.start(self.readfile, sdh,mn)
@@ -115,7 +155,7 @@ class ExampleApp(QtWidgets.QMainWindow, desgn.Ui_MainWindow):
                         self.errorLabel.setText(str(e))
                         return
 
-                if (self.inareaBtn.isChecked()):
+                if (self.inareaBtn.isChecked() and self.checkBox.isChecked() == False):
 
                     try:
                         self.firstPath, self.fLen, self.secondPath, self.sLen, self.sameNudes, self.trueLen = \
@@ -148,6 +188,8 @@ class ExampleApp(QtWidgets.QMainWindow, desgn.Ui_MainWindow):
         self.enterBtn.setEnabled(True)
         self.inareaBtn.setEnabled(True)
         self.outareabtn.setEnabled(True)
+        self.dwdmBtn.setEnabled(False)
+        self.checkBox.setEnabled(True)
 
     def saveListen(self):
          file2, _ = QtWidgets.QFileDialog.getOpenFileName(self,
@@ -173,6 +215,16 @@ class ExampleApp(QtWidgets.QMainWindow, desgn.Ui_MainWindow):
         self.startButton.setEnabled(True)
         self.excel_data_df = pd.read_excel(file2)
 
+    def openDWDM(self):
+        file2, _ = QtWidgets.QFileDialog.getOpenFileName(self,
+                        'Open File',
+                        './',
+                        'py Files (*.xlsx);;Text Files (*.xml)')
+        if not file2:
+            return
+        self.startButton.setEnabled(True)
+        self.data = file2
+
 
 
 
@@ -180,7 +232,8 @@ class ExampleApp(QtWidgets.QMainWindow, desgn.Ui_MainWindow):
 
 def main():
     app = QtWidgets.QApplication(sys.argv)  # Новый экземпляр QApplication
-    window = ExampleApp()  # Создаём объект класса ExampleApp
+    window = ExampleApp() # Создаём объект класса ExampleApp
+    window.setFixedSize(800,600)
     window.show()  # Показываем окно
     app.exec_()  #и запускаем приложение
 

@@ -8,12 +8,19 @@ def overPrice(firstPath,allNudes):
         allNudes[firstPath[i]].update([(firstPath[i + 1], allNudes[firstPath[i]].get(firstPath[i + 1]) + 9000)])
         allNudes[firstPath[i + 1]].update([(firstPath[i], allNudes[firstPath[i + 1]].get(firstPath[i]) + 9000)])
 
+def checkForSameNode2(allnudes,startpos,endpos,secondpath):
+    overPrice(secondpath,allnudes)
+    alternative = dj.shortest_path(allnudes, start=startpos, end=endpos)
+    alternative2 = dj.dijkstra(allnudes, start=startpos, end=endpos)
+    altLen = alternative2[0].get(endpos)
+    return alternative,altLen
+
 def overPriceIndNode(firstPath,allNudes):
     for i in range(len(firstPath)):
         n = list(allNudes[firstPath[i]].keys())
-        m = list(allNudes[firstPath[i]].values())
         for b in range(len(allNudes[firstPath[i]])):
             allNudes[firstPath[i]].update([(n[b], allNudes[firstPath[i]].get(n[b]) + 9000)])
+
 def clearFirstPath(firstPath,allNudes):
     for i in range(len(firstPath) - 1):
         allNudes[firstPath[i]].update([(firstPath[i + 1], allNudes[firstPath[i]].get(firstPath[i + 1]) - 9000)])
@@ -37,6 +44,13 @@ def checkSameNode(firstPath,secondPath,sameNudes):
                 continue
     return sameNudes
 
+def zapolnenie(df,allNudes):
+    for i in range(df.shape[0]):
+        allNudes[df['№ т.А'][i]].update([(df['№ т.Б'][i], df['Длина, км'][i])])
+
+    for i in range(df.shape[0]):
+        allNudes[df['№ т.Б'][i]].update([(df['№ т.А'][i], df['Длина, км'][i])])
+
 def start(file,startpos,endpos):
 
         try:
@@ -52,25 +66,15 @@ def start(file,startpos,endpos):
 
         df = Connect.copy()
 
-
-        for i in range(df.shape[0]):
-            allNudes[df['№ т.А'][i]].update([(df['№ т.Б'][i] , df['Длина, км'][i])])
-
-        for i in range(df.shape[0]):
-            allNudes[df['№ т.Б'][i]].update([(df['№ т.А'][i] , df['Длина, км'][i])])
-
+        zapolnenie(df,allNudes)
 
         allNEdes = allNudes.copy()
+
         firstPath = dj.shortest_path(allNEdes,start=startpos,end=endpos)
         FTest = dj.dijkstra(allNEdes,start=startpos,end=endpos)
         fLen = FTest[0].get(endpos)
 
         overPrice(firstPath,allNudes)
-
-        """for i in range(len(firstPath)-1):
-
-            allNudes[firstPath[i]].update([(firstPath[i+1] , allNudes[firstPath[i]].get(firstPath[i+1]) + 9000)])
-            allNudes[firstPath[i+1]].update([(firstPath[i], allNudes[firstPath[i+1]].get(firstPath[i]) + 9000)])"""
 
         STest = dj.dijkstra(allNEdes,start=startpos,end=endpos)
         sLen = STest[0].get(endpos)
@@ -78,8 +82,6 @@ def start(file,startpos,endpos):
 
         sameNudes = []
         trueLen = STest[0].get(endpos)
-
-
 
         sameNudes = checkSameNode(firstPath,secondPath,sameNudes)
 
