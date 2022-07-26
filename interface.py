@@ -2,6 +2,11 @@ import os
 import re
 import sys
 from time import sleep
+
+from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QLabel
+
 import dwdmDir as dw
 from PyQt5 import QtCore, QtWidgets
 import desgn
@@ -23,6 +28,8 @@ class ExampleApp(QtWidgets.QMainWindow, desgn.Ui_MainWindow):
         self.dwdmBtn.clicked.connect(self.openDWDM)
         self.checkBox.clicked.connect(self.check)
 
+        self.setWindowTitle("C.H.A.I")
+
         self.excel_data_df = pd.DataFrame()
         self.save_df = pd.DataFrame()
 
@@ -34,6 +41,8 @@ class ExampleApp(QtWidgets.QMainWindow, desgn.Ui_MainWindow):
         self.dwdmBtn.setEnabled(False)
 
         self.pos = 0
+
+
 
     def check(self):
         if (self.checkBox.isChecked()):
@@ -63,7 +72,9 @@ class ExampleApp(QtWidgets.QMainWindow, desgn.Ui_MainWindow):
         if not file:
             return
         self.readfile = file
+
         self.addButton.setEnabled(True)
+
 
     def startListen(self):
 
@@ -110,10 +121,19 @@ class ExampleApp(QtWidgets.QMainWindow, desgn.Ui_MainWindow):
             if(a and b):
                 if (self.checkBox.isChecked()):
                     firstPathD,SecndPathD,sameNudesdwdm = dw.dwdm(self.data,sdh,mn)
-
-                    fullpath1,flen = dw.repath(self.readfile,firstPathD)
-                    fullpath2,slen = dw.repath(self.readfile, SecndPathD)
+                    fullpath1,flen = dw.repath(self.readfile,firstPathD,self.data)
+                    fullpath2,slen = dw.repath(self.readfile, SecndPathD,self.data)
                     fullpath1,fullpath2,flen,slen = dw.bestchoice(fullpath1,fullpath2,flen,slen)
+
+                    if sdh not in fullpath1:
+                        fullpath1.insert(0, sdh)
+                    if mn not in fullpath1:
+                        fullpath1.append(mn)
+
+                    if sdh not in fullpath2:
+                        fullpath2.insert(0, sdh)
+                    if mn not in fullpath2:
+                        fullpath2.append(mn)
 
                     nodes = []
                     pf.checkSameNode(fullpath1,fullpath2,nodes)
@@ -132,7 +152,7 @@ class ExampleApp(QtWidgets.QMainWindow, desgn.Ui_MainWindow):
                             for b in range(self.save_df.shape[1]):
                                 self.save_df.iat[i, b] = allData[b]
                                 check += 1
-                        if (check == 8):
+                        if (check == 7):
                             break
                 if(self.outareabtn.isChecked() and self.checkBox.isChecked() == False):
                     try:
@@ -190,6 +210,7 @@ class ExampleApp(QtWidgets.QMainWindow, desgn.Ui_MainWindow):
         self.outareabtn.setEnabled(True)
         self.dwdmBtn.setEnabled(False)
         self.checkBox.setEnabled(True)
+        self.checkBox.setCheckState(False)
 
     def saveListen(self):
          file2, _ = QtWidgets.QFileDialog.getOpenFileName(self,

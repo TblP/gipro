@@ -46,13 +46,14 @@ def checkSameNode(firstPath,secondPath,sameNudes):
 
 def zapolnenie(df,allNudes):
     for i in range(df.shape[0]):
-        allNudes[df['№ т.А'][i]].update([(df['№ т.Б'][i], df['Длина, км'][i])])
+        if df['№ т.А'][i] in allNudes.keys():
+            allNudes[df['№ т.А'][i]].update([(df['№ т.Б'][i], df['Длина, км'][i])])
 
     for i in range(df.shape[0]):
-        allNudes[df['№ т.Б'][i]].update([(df['№ т.А'][i], df['Длина, км'][i])])
+        if df['№ т.Б'][i] in allNudes.keys():
+            allNudes[df['№ т.Б'][i]].update([(df['№ т.А'][i], df['Длина, км'][i])])
 
 def start(file,startpos,endpos):
-
         try:
             Connect = pd.read_excel(file, sheet_name='edges')
             data_df = pd.read_excel(file, sheet_name='nodes')
@@ -68,17 +69,17 @@ def start(file,startpos,endpos):
 
         zapolnenie(df,allNudes)
 
-        allNEdes = allNudes.copy()
+        #allNEdes = allNudes.copy()
 
-        firstPath = dj.shortest_path(allNEdes,start=startpos,end=endpos)
-        FTest = dj.dijkstra(allNEdes,start=startpos,end=endpos)
+        firstPath = dj.shortest_path(allNudes,start=startpos,end=endpos)
+        FTest = dj.dijkstra(allNudes,start=startpos,end=endpos)
         fLen = FTest[0].get(endpos)
 
         overPrice(firstPath,allNudes)
 
-        STest = dj.dijkstra(allNEdes,start=startpos,end=endpos)
+        STest = dj.dijkstra(allNudes,start=startpos,end=endpos)
         sLen = STest[0].get(endpos)
-        secondPath = dj.shortest_path(allNEdes,start=startpos,end=endpos)
+        secondPath = dj.shortest_path(allNudes,start=startpos,end=endpos)
 
         sameNudes = []
         trueLen = STest[0].get(endpos)
