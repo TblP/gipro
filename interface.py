@@ -93,10 +93,10 @@ class ExampleApp(QtWidgets.QMainWindow, desgn.Ui_MainWindow):
             a.append(i)
 
         if (self.checkBox.isChecked()):
-            self.save_df = pd.DataFrame(index=a, columns=['Путь1', 'Длина1', 'Путь2', 'Длина2', 'Одинаковые узлы','dwdm1','dwdm2'])
+            self.save_df = pd.DataFrame(index=a, columns=['Путь1', 'Длина1', 'Путь2', 'Длина2', 'Одинаковые узлы','dwdm1','dwdm2','Возможно плохо обработалось'])
         else:
             self.save_df = pd.DataFrame(index=a, columns=['Путь1', 'Длина1', 'Путь2', 'Длина2', 'Одинаковые узлы'])
-
+        error = []
         for i in range(self.excel_data_df.shape[0]):
 
             self.pos = i
@@ -121,9 +121,12 @@ class ExampleApp(QtWidgets.QMainWindow, desgn.Ui_MainWindow):
             if(a and b):
                 if (self.checkBox.isChecked()):
                     firstPathD,SecndPathD,sameNudesdwdm = dw.dwdm(self.data,sdh,mn)
-                    fullpath1,flen = dw.repath(self.readfile,firstPathD,self.data)
-                    fullpath2,slen = dw.repath(self.readfile, SecndPathD,self.data)
+                    fullpath1,flen,error1 = dw.repath(self.readfile,firstPathD,self.data)
+                    fullpath2,slen,error1 = dw.repath(self.readfile, SecndPathD,self.data)
                     fullpath1,fullpath2,flen,slen = dw.bestchoice(fullpath1,fullpath2,flen,slen)
+
+                    if(error1 > 0):
+                        error.append(i)
 
                     if sdh not in fullpath1:
                         fullpath1.insert(0, sdh)
@@ -143,17 +146,19 @@ class ExampleApp(QtWidgets.QMainWindow, desgn.Ui_MainWindow):
                     if mn in nodes:
                         nodes.remove(mn)
 
-                    allData = [fullpath1,flen,fullpath2,slen,nodes,firstPathD,SecndPathD]
+                    allData = [fullpath1,flen,fullpath2,slen,nodes,firstPathD,SecndPathD,error]
 
                     check = 0
 
                     for i in range(self.save_df.shape[0]):
                         if (str(self.save_df.iat[i, 0]).lower() == 'nan'):
-                            for b in range(self.save_df.shape[1]):
+                            for b in range(self.save_df.shape[1]-1):
                                 self.save_df.iat[i, b] = allData[b]
                                 check += 1
                         if (check == 7):
                             break
+                    self.save_df.iat[0, 7] = allData[7]
+
                 if(self.outareabtn.isChecked() and self.checkBox.isChecked() == False):
                     try:
                         self.firstPath, self.fLen, self.secondPath, self.sLen, self.sameNudes, self.trueLen = \

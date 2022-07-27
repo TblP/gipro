@@ -47,10 +47,6 @@ import numpy as np
 
 '''
 
-
-def get_indices(lst, el):
-    return [i for i in range(len(lst)) if lst[i] == el]
-
 def correctSample(correctnodes,first,second,path,path2,file):
 
     try:
@@ -103,40 +99,76 @@ def correctSample(correctnodes,first,second,path,path2,file):
     q = 0
     b = 0
     u = 0
+    node = []
+    needDel = []
+    pf.checkSameNode(path,path2,node)
     if(len(path) > 0):
         start = first
-        while b != len(path)-1:
+        while b != len(path):
 
             ab = list5[list5['№ узла'] == path[b]].index
             ab = ab.to_list()
+
             if ((list5.iloc[ab[0], 1] == 'OADM' or list5.iloc[ab[0], 1] == 'SDH') and (list5.iloc[ab[0], 0] != first and list5.iloc[ab[0],0 ] != second)):
                 checkpoints = pf.dj.shortest_path(allNudes, start, list5.iloc[ab[0], 0])
-                start = list5.iloc[ab[0], 0]
+
                 if(len(checkpoints) == 2):
                     b += 1
+                    start = list5.iloc[ab[0], 0]
                 else:
+                    if list5.iloc[ab[0], 0] not in node:
+                        list5 = list5.drop(index=[ab[0]])
+                        list5 = list5.reset_index(drop=True)
+                        b += 1
+                        g += 1
+                    else:
+                        needDel.append(list5.iloc[ab[0], 0])
+                        b += 1
+            elif list5.iloc[ab[0],0 ] == second:
+                checkpoints = pf.dj.shortest_path(allNudes, start, list5.iloc[ab[0], 0])
+                if (len(checkpoints) != 2):
+                    ab = list5[list5['№ узла'] == start].index
+                    ab = ab.to_list()
                     list5 = list5.drop(index=[ab[0]])
                     list5 = list5.reset_index(drop=True)
                     b += 1
                     g += 1
+                else:
+                    b += 1
             else:
                 b += 1
     if (len(path2) > 0):
         start = first
-        while q != len(path2) - 1:
+        while q != len(path2):
             ab = list5[list5['№ узла'] == path2[q]].index
             ab = ab.to_list()
+
             if ((list5.iloc[ab[0], 1] == 'OADM' or list5.iloc[ab[0], 1] == 'SDH') and (
                 list5.iloc[ab[0], 0] != first and list5.iloc[ab[0], 0] != second)):
                 checkpoints = pf.dj.shortest_path(allNudes, start, list5.iloc[ab[0], 0])
-                start = list5.iloc[ab[0], 0]
                 if (len(checkpoints) == 2):
                     q += 1
+                    start = list5.iloc[ab[0], 0]
                 else:
+                    if list5.iloc[ab[0], 0] not in node:
+                        list5 = list5.drop(index=[ab[0]])
+                        list5 = list5.reset_index(drop=True)
+                        q += 1
+                        g += 1
+                    else:
+                        needDel.append(list5.iloc[ab[0], 0])
+                        q += 1
+            elif list5.iloc[ab[0],0 ] == second:
+                checkpoints = pf.dj.shortest_path(allNudes, start, list5.iloc[ab[0], 0])
+                if (len(checkpoints) != 2):
+                    ab = list5[list5['№ узла'] == start].index
+                    ab = ab.to_list()
                     list5 = list5.drop(index=[ab[0]])
                     list5 = list5.reset_index(drop=True)
                     q += 1
                     g += 1
+                else:
+                    q += 1
             else:
                 q += 1
 
@@ -193,6 +225,24 @@ def correctSample(correctnodes,first,second,path,path2,file):
             else:
                 i += 1
         '''
+
+    again = []
+    again.clear()
+    for i in range(len(needDel) - 1):
+        if (needDel[i] == needDel[i + 1]):
+            again.append(needDel[i])
+    if (len(again) > 0):
+        for i in range(len(again)):
+            needDel.remove(again[i])
+
+
+    if (len(needDel) > 0):
+        for need in needDel:
+            delit = list5[list5['№ узла'] == need].index
+            delit = delit.to_list()
+            list5 = list5.drop(index=[delit[0]])
+            list5 = list5.reset_index(drop=True)
+            g += 1
 
     if(g>0):
         g = 0
@@ -282,6 +332,7 @@ def dwdm(file,startpos,endpos):
 
 
 def repath(file,path,file3):
+    error = 0
     fullpath = []
     Len = []
     file2 = file
@@ -291,10 +342,48 @@ def repath(file,path,file3):
         while a == False:
             file2 = correctSample(file2, path[i], path[i+1],firstPath,secondPath,file3)
             if(file2 != None):
-                firstPath, fLen, secondPath, sLen, sameNudes, trueLen = pf.start(file2, path[i], path[i + 1])
+                try:
+                    firstPath, fLen, secondPath, sLen, sameNudes, trueLen = pf.start(file2, path[i], path[i + 1])
+                except KeyError:
+                    a = True
+                    file2 = file
+                    error = 1
             if(file2 == None):
                 a = True
                 file2 = file
+
+        again = 0
+        for inArray in range(len(fullpath) - 1):
+            for i in range(len(firstPath) - 1):
+                if (firstPath[i] in fullpath[inArray]):
+                    again += 1
+                if(again > len(fullpath[inArray])):
+                    again = 9000
+        if again >= 9000:
+            if(len(sameNudes) > 0):
+                endpath = firstPath[firstPath.index(sameNudes[len(sameNudes) - 2]):]
+                firstPath = secondPath[:secondPath.index(sameNudes[len(sameNudes) - 2])]
+                for element in endpath:
+                    firstPath.append(element)
+                fLen = redistance(file,firstPath)
+
+
+        again = 0
+        for inArray in range(len(fullpath) - 1):
+            for i in range(len(secondPath) - 1):
+                if (secondPath[i] in fullpath[inArray]):
+                    again += 1
+                if(again > len(fullpath[inArray])):
+                    again = 9000
+        if again == 9000:
+            if (len(sameNudes) > 0):
+                endpath = secondPath[secondPath.index(sameNudes[len(sameNudes)-2]):]
+                secondPath = firstPath[:firstPath.index(sameNudes[len(sameNudes)-2])]
+                for element in endpath:
+                    secondPath.append(element)
+                sLen = redistance(file, secondPath)
+
+
 
         fullpath.append(firstPath)
         fullpath.append(secondPath)
@@ -307,7 +396,7 @@ def repath(file,path,file3):
         url += r'\{0}'.format(name)
         if (os.path.exists(url)):
             os.remove(url)
-    return fullpath, Len
+    return fullpath, Len , error
 
 def bestchoice(q,w,fl,sl):
     path = []
@@ -433,10 +522,25 @@ def bestchoice(q,w,fl,sl):
 
 
     return path,path2,l1,l2
-"""
-print(repath(firstPathD))
-print(repath(SecndPathD))
-"""
+
+
+def redistance(file,path):
+    ln = 0
+    try:
+        Connect = pd.read_excel(file, sheet_name='edges')
+    except:
+        raise ValueError("bad file")
+    list5 = Connect[['№ т.А', '№ т.Б','Длина, км']]
+    for i in range(len(path)-1):
+        for b in range(list5.shape[0]):
+            if(list5.iloc[b, 0] == path[i]) and (list5.iloc[b, 1] == path[i+1]):
+                ln += list5.iloc[b, 2]
+                break
+            if (list5.iloc[b, 1] == path[i]) and (list5.iloc[b, 0] == path[i + 1]):
+                ln += list5.iloc[b, 2]
+                break
+
+    return ln
 
 
 

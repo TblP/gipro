@@ -124,11 +124,11 @@ if __name__ == '__main__':
 
     graph = {'a': {'b': 14, 'c': 9, 'd': 7},
              'b': {'a': 14, 'c': 2, 'e': 9},
-             'c': {'a': 9, 'b': 2, 'd': 10, 'f': 11},
-             'd': {'a': 7, 'c': 10, 'f': 15},
-             'e': {'b': 9, 'f': 6},
+             'c': {'a': 9, 'b': 2, 'd': 10},
+             'd': {'a': 7, 'c': 10},
+             'e': {'b': 9},
              'f': {'c': 11, 'd': 15, 'e': 6}}
-
-    dist, pred = dijkstra(graph, start='a',end='f')
-    f = shortest_path(graph, start='a',end='f')
-    expected = {'a': 0, 'c': 9, 'b': 11, 'e': 20, 'd': 7, 'f': 20}
+    try:
+        dist, pred = shortest_path(graph, start='a',end='f')
+    except KeyError:
+        print("lol")
