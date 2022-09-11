@@ -5,47 +5,6 @@ import openpyxl as op
 import pathFinding as pf
 import pandas as pd
 import numpy as np
-'''def dwdm(file,startpos,endpos):
-    try:
-        Connect = pd.read_excel(file, sheet_name='Лист1')
-    except:
-        raise ValueError("bad file")
-
-    df = Connect.copy()
-    df.insert(0,'Длина, км',1)
-
-    list1 = df['№ т.А'].tolist()
-    list2 = df['№ т.Б'].tolist()
-    list3 = list1 + list2
-    list3 = list(set(list3))
-    allNudes = dict(zip(list3, [dict() for i in range(len(list3))]))
-
-    pf.zapolnenie(df, allNudes)
-
-    firstPathD = pf.dj.shortest_path(allNudes,start=startpos,end=endpos)
-
-    pf.overPrice(firstPathD,allNudes)
-    pf.overPriceIndNode(firstPathD,allNudes)
-
-    SecndPathD = pf.dj.shortest_path(allNudes,start=startpos,end=endpos)
-
-    sameNudes = []
-    pf.checkSameNode(firstPathD,SecndPathD,sameNudes)
-
-    if startpos in sameNudes:
-        sameNudes.remove(startpos)
-    if endpos in sameNudes:
-        sameNudes.remove(endpos)
-
-    if (len(sameNudes) > 0):
-        sameNodes, alt, altLen = pf.checkForSameNode(sameNudes, allNudes, startpos, endpos, SecndPathD, firstPathD)
-        if (len(np.intersect1d(sameNudes, sameNodes)) == 0):
-            sameNudes = sameNodes
-            firstPathD = alt
-
-    return firstPathD,SecndPathD,sameNudes
-
-'''
 
 def correctSample(correctnodes,first,second,path,path2,file):
 
@@ -80,18 +39,7 @@ def correctSample(correctnodes,first,second,path,path2,file):
         data_df2 = pd.read_excel(a, sheet_name='edges')
     except:
         raise ValueError("bad file")
-    '''
-   df2 = data_df2.copy()
 
-   li1 = df2['№ т.А'].tolist()
-   li2 = df2['№ т.Б'].tolist()
-   li3 = li1 + li2
-   li3 = list(set(li3))
-
-   allNudes2 = dict(zip(li3, [dict() for i in range(len(li3))]))
-
-   pf.zapolnenie(df2, allNudes2)
-   '''
 
 
     list5 = data_df[['№ узла','Тип узла']]
@@ -171,61 +119,6 @@ def correctSample(correctnodes,first,second,path,path2,file):
                     q += 1
             else:
                 q += 1
-
-            '''
-            try:
-                if(list5.iloc[b, 1] == 'OADM' or list5.iloc[b, 1] == 'SDH'):
-                    a = pf.dj.shortest_path(allNudes, start=first, end=list5.iloc[b, 0])
-                    for l in range(len(a[:-1])):
-                        io = pf.dj.shortest_path(allNudes2, start=a[l], end=a[l+1])
-
-                        for i in io[1:-1]:
-                            ab = list5[list5['№ узла'] == i].index
-                            
-                            ab = ab.to_list()
-
-                            if(list5.iloc[ab[0], 1] == 'OADM' or list5.iloc[ab[0], 1] == 'SDH'):
-                                for i in range(len(allNudes2)-1):
-                                    if list5.iloc[b, 0] in allNudes2.keys():
-                                        del allNudes2[list5.iloc[b, 0]]
-                                for value in allNudes2.values():
-                                    if list5.iloc[b, 0] in value:
-                                        value.pop(list5.iloc[b, 0])
-                                list5 = list5.drop(index=[ab[0]])
-                                list5 = list5.reset_index(drop=True)
-                                u += 1
-
-                        if(u > 0 and u < len(a[1:-2])):
-                            g += 1
-
-                        if(u == len(a[1:-2])):
-                            list5 = list5.drop(index=[b])
-                            list5 = list5.reset_index(drop=True)
-                            u = 0
-                            g += 1
-                    b += 1
-                else:
-                    b+=1
-            except KeyError:
-                a = 'error'
-                list5 = list5.drop(index=[b])
-                list5 = list5.reset_index(drop=True)
-                g += 1
-            '''
-        '''
-                while i != list5.shape[0]:
-            if(list5.iloc[i,0] not in path and (list5.iloc[i, 1] == 'OADM' or list5.iloc[i, 1] == 'SDH')):
-                list5 = list5.drop(index=[i])
-                list5 = list5.reset_index(drop=True)
-                g += 1
-            if (list5.iloc[i, 0] not in path2 and (list5.iloc[i, 1] == 'OADM' or list5.iloc[i, 1] == 'SDH')):
-                list5 = list5.drop(index=[i])
-                list5 = list5.reset_index(drop=True)
-                g += 1
-            else:
-                i += 1
-        '''
-
     again = []
     again.clear()
     for i in range(len(needDel) - 1):
@@ -254,30 +147,11 @@ def correctSample(correctnodes,first,second,path,path2,file):
         with pd.ExcelWriter(a, 'openpyxl', mode='a') as writer:
             writer.sheets = dict((ws.title, ws) for ws in writer.book.worksheets)
             list5.to_excel(writer, 'nodes')
-        '''
-        if first not in path:
-            path.insert(0, first)
-        if second not in path:
-            path.append(second)
-        if second not in path2:
-            path2.insert(0, first)
-        if second not in path2:
-            path2.append(second) 
-        '''
 
 
         return a
     else:
-        '''
-        if first not in path:
-            path.insert(0, first)
-        if second not in path:
-            path.append(second)
-        if second not in path2:
-            path2.insert(0, first)
-        if second not in path2:
-            path2.append(second)
-            '''
+
         return None
 
 def dwdm(file,startpos,endpos):
@@ -299,9 +173,10 @@ def dwdm(file,startpos,endpos):
     pf.zapolnenie(df, allNudes)
 
     alnudes2 = copy.deepcopy(allNudes)
-
-    firstPathD = pf.dj.shortest_path(allNudes,start=startpos,end=endpos)
-
+    try:
+        firstPathD = pf.dj.shortest_path(allNudes,start=startpos,end=endpos)
+    except KeyError:
+        return 0, 0, 0
     pf.overPrice(firstPathD,allNudes)
     pf.overPriceIndNode(firstPathD,allNudes)
 
@@ -516,11 +391,6 @@ def bestchoice(q,w,fl,sl):
             again.append(path2[i])
     for i in range(len(again)):
         path2.remove(again[i])
-
-
-
-
-
     return path,path2,l1,l2
 
 

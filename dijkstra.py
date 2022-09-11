@@ -129,6 +129,7 @@ if __name__ == '__main__':
              'e': {'b': 9},
              'f': {'c': 11, 'd': 15, 'e': 6}}
     try:
-        dist, pred = shortest_path(graph, start='a',end='f')
+        pred = shortest_path(graph, start='a',end='b')
+        print(pred)
     except KeyError:
         print("lol")

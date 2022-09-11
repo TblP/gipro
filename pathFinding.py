@@ -70,9 +70,19 @@ def start(file,startpos,endpos):
         zapolnenie(df,allNudes)
 
         #allNEdes = allNudes.copy()
+        try:
+            firstPath = dj.shortest_path(allNudes, start=startpos, end=endpos)
+            FTest = dj.dijkstra(allNudes, start=startpos, end=endpos)
+        except KeyError:
+            firstPath = 0
+            fLen = 0
+            secondPath = 0
+            sLen = 0
+            sameNudes = 0
+            trueLen = 0
+            return firstPath,fLen,secondPath,sLen,sameNudes,trueLen
 
-        firstPath = dj.shortest_path(allNudes,start=startpos,end=endpos)
-        FTest = dj.dijkstra(allNudes,start=startpos,end=endpos)
+
         fLen = FTest[0].get(endpos)
 
         overPrice(firstPath,allNudes)
@@ -179,16 +189,21 @@ def startInArea(file,startpos,endpos):
         allNudez[areaNudes['№ т.Б'][i]].update([(areaNudes['№ т.А'][i], areaNudes['Длина, км'][i])])
 
     allNEdes = allNudez.copy()
-    firstPath = dj.shortest_path(allNEdes, start=startpos, end=endpos)
-    FTest = dj.dijkstra(allNEdes, start=startpos, end=endpos)
+    try:
+        firstPath = dj.shortest_path(allNEdes, start=startpos, end=endpos)
+        FTest = dj.dijkstra(allNEdes, start=startpos, end=endpos)
+    except KeyError:
+        firstPath = 0
+        fLen = 0
+        secondPath = 0
+        sLen = 0
+        sameNudes = 0
+        trueLen = 0
+        return firstPath, fLen, secondPath, sLen, sameNudes, trueLen
     fLen = FTest[0].get(endpos)
 
-    """for i in range(len(firstPath) - 1):
-
-        allNudez[firstPath[i]].update([(firstPath[i + 1], allNudez[firstPath[i]].get(firstPath[i + 1]) + 9000)])
-        allNudez[firstPath[i + 1]].update([(firstPath[i], allNudez[firstPath[i + 1]].get(firstPath[i]) + 9000)])"""
     overPrice(firstPath, allNEdes)
-    # print(dj.shortest_path(allNEdes,start='N09404',end='N09373'))
+
     STest = dj.dijkstra(allNEdes, start=startpos, end=endpos)
     sLen = STest[0].get(endpos)
     secondPath = dj.shortest_path(allNEdes, start=startpos, end=endpos)

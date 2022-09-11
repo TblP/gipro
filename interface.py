@@ -114,6 +114,17 @@ class ExampleApp(QtWidgets.QMainWindow, desgn.Ui_MainWindow):
                     self.errorLabel.setText(str(e))
                     return
 
+                if (a == False or b == False):
+                    allData = [0, 0, 0, 0, 0, 0]
+                    check = 0
+                    for i in range(self.save_df.shape[0]):
+                        if (str(self.save_df.iat[i, 0]).lower() == 'nan'):
+                            for b in range(self.save_df.shape[1]):
+                                self.save_df.iat[i, b] = allData[b]
+                                check += 1
+                        if (check == 5):
+                            break
+                    continue
             else:
                 self.errorLabel.setText("Введите узлы SDH или Main node в правом нижнем углу")
                 return
@@ -121,9 +132,21 @@ class ExampleApp(QtWidgets.QMainWindow, desgn.Ui_MainWindow):
             if(a and b):
                 if (self.checkBox.isChecked()):
                     firstPathD,SecndPathD,sameNudesdwdm = dw.dwdm(self.data,sdh,mn)
-                    fullpath1,flen,error1 = dw.repath(self.readfile,firstPathD,self.data)
-                    fullpath2,slen,error1 = dw.repath(self.readfile, SecndPathD,self.data)
-                    fullpath1,fullpath2,flen,slen = dw.bestchoice(fullpath1,fullpath2,flen,slen)
+                    if(firstPathD == 0):
+                        allData = [0, 0, 0, 0, 0, 0, 0, 0]
+                        check = 0
+                        for i in range(self.save_df.shape[0]):
+                            if (str(self.save_df.iat[i, 0]).lower() == 'nan'):
+                                for b in range(self.save_df.shape[1]):
+                                    self.save_df.iat[i, b] = allData[b]
+                                    check += 1
+                            if (check == 7):
+                                break
+                        continue
+                    else:
+                        fullpath1,flen,error1 = dw.repath(self.readfile,firstPathD,self.data)
+                        fullpath2,slen,error1 = dw.repath(self.readfile, SecndPathD,self.data)
+                        fullpath1,fullpath2,flen,slen = dw.bestchoice(fullpath1,fullpath2,flen,slen)
 
                     if(error1 > 0):
                         error.append(i)
@@ -160,7 +183,6 @@ class ExampleApp(QtWidgets.QMainWindow, desgn.Ui_MainWindow):
                     self.save_df.iat[0, 7] = allData[7]
 
                 if(self.outareabtn.isChecked() and self.checkBox.isChecked() == False):
-                    try:
                         self.firstPath, self.fLen, self.secondPath, self.sLen, self.sameNudes, self.trueLen = \
                             pf.start(self.readfile, sdh,mn)
 
@@ -176,13 +198,7 @@ class ExampleApp(QtWidgets.QMainWindow, desgn.Ui_MainWindow):
                             if (check == 5):
                                 break
 
-                    except ValueError as e:
-                        self.errorLabel.setText(str(e))
-                        return
-
                 if (self.inareaBtn.isChecked() and self.checkBox.isChecked() == False):
-
-                    try:
                         self.firstPath, self.fLen, self.secondPath, self.sLen, self.sameNudes, self.trueLen = \
                             pf.startInArea(self.readfile, sdh,mn)
 
@@ -197,10 +213,6 @@ class ExampleApp(QtWidgets.QMainWindow, desgn.Ui_MainWindow):
                                     check += 1
                             if (check == 5):
                                 break
-
-                    except ValueError as e:
-                        self.errorLabel.setText(str(e))
-                        return
 
             else:
                 self.errorLabel.setText("Проверьте правильность ввода узлов.(Возможно пробел на конце)")
